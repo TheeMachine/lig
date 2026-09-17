@@ -1,5 +1,11 @@
 # Sürüm Notları
 
+## 1.2 — 2026-09-17
+
+- Sayfanın altına sürüm numarası eklendi. Değer `CONFIG.version` alanından okunur.
+- Lig başlığı "Hep Yorgunlar" olarak değiştirildi.
+- İlk devre fikstürü, oynanmış maçlar üstte olacak şekilde yeniden sıralandı.
+
 ## 1.1 — 2026-09-17
 
 ### Takım adları
