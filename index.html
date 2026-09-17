@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grup 1 Lig</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #1a1229; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans">
+  <div class="max-w-md md:max-w-3xl mx-auto py-6 px-4">
+    <div class="rounded-xl overflow-hidden shadow-2xl" style="background:#2a1f3f">
+
+      <!-- Başlık -->
+      <div class="flex items-center justify-between px-4 py-3" style="background:#3a2d54">
+        <h1 class="text-lg font-bold text-white" id="title"></h1>
+        <button id="reset" class="text-xs text-slate-400 hover:text-white transition">Sıfırla</button>
+      </div>
+
+      <!-- Puan Durumu -->
+      <div class="px-3 pt-3 md:max-w-md md:mx-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-slate-400 text-xs">
+              <th class="text-left py-2 pl-2 font-semibold">Takım</th>
+              <th class="w-8 text-center font-semibold">O</th>
+              <th class="w-8 text-center font-semibold">G</th>
+              <th class="w-8 text-center font-semibold">B</th>
+              <th class="w-8 text-center font-semibold">M</th>
+              <th class="w-8 text-center font-semibold">A</th>
+              <th class="w-8 text-center font-semibold">Y</th>
+              <th class="w-9 text-center font-semibold">Av</th>
+              <th class="w-8 text-center font-semibold">P</th>
+            </tr>
+          </thead>
+          <tbody id="standings"></tbody>
+        </table>
+      </div>
+
+      <!-- Fikstür (bölümler JS tarafından üretilir) -->
+      <div id="fixtures" class="px-3 pb-4 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"></div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       AYARLAR — sadece burayı düzenle
+       ---------------------------------------------------------
+       - TEAMS: takım listesi (ekle/çıkar serbest)
+       - SECTIONS: fikstür bölümleri. Her bölümde maçlar
+         ['Ev', 'Deplasman'] veya ['Ev', 'Deplasman', evSkor, depSkor]
+         şeklinde. Sırayı değiştirmek için satırları taşı,
+         tarafı değiştirmek için isimleri yer değiştir.
+       - Skorlar takım adına göre kaydedilir; maçın sırası
+         veya tarafı değişse bile kayıtlı skor kaybolmaz.
+       ========================================================= */
+    const CONFIG = {
+      title: 'Hep Yorgunlar',
+      storageKey: 'grup1-skorlar',
+      teams: ['Mert', 'Kasım', 'Abdullah', 'İsmail', 'Zafer'],
+      sections: [
+        {
+          name: 'İLK DEVRE',
+          matches: [
+            ['Zafer', 'Abdullah'],
+            ['İsmail', 'Kasım', 2, 2],
+            ['Kasım', 'Mert'],
+            ['İsmail', 'Abdullah'],
+            ['Zafer', 'İsmail'],
+            ['Mert', 'Abdullah'],
+            ['Zafer', 'Kasım'],
+            ['Mert', 'İsmail', 4, 1],
+            ['Abdullah', 'Kasım', 3, 3],
+            ['Zafer', 'Mert', 0, 3],
+          ],
+        },
+        {
+          name: 'İKİNCİ DEVRE',
+          matches: [
+            ['İsmail', 'Zafer'],
+            ['Abdullah', 'Mert'],
+            ['İsmail', 'Mert'],
+            ['Kasım', 'Zafer'],
+            ['Kasım', 'İsmail'],
+            ['Abdullah', 'Zafer'],
+            ['Abdullah', 'İsmail'],
+            ['Mert', 'Kasım'],
+            ['Kasım', 'Abdullah'],
+            ['Mert', 'Zafer'],
+          ],
+        },
+      ],
+    };
+    /* ================== AYARLAR SONU ================== */
+
+
+    // --- Maç modeli ---------------------------------------------
+    // Her maç: { key, section, home, away, score: { [takım]: sayı|null } }
+    // key: bölüm + sıralı takım çifti -> taraf/sıra değişse de aynı kalır
+    const matches = [];
+
+    function matchKey(sectionIdx, a, b) {
+      return `${sectionIdx}|${[a, b].sort((x, y) => x.localeCompare(y, 'tr')).join('~')}`;
+    }
+
+    function buildMatches() {
+      CONFIG.sections.forEach((sec, si) => {
+        sec.matches.forEach(m => {
+          const [home, away, hs = null, as = null] = m;
+          if (!CONFIG.teams.includes(home) || !CONFIG.teams.includes(away)) {
+            console.warn('Bilinmeyen takım:', m); return;
+          }
+          const score = {};
+          score[home] = hs;
+          score[away] = as;
+          matches.push({ key: matchKey(si, home, away), section: si, home, away, score });
+        });
+      });
+    }
+
+    // --- Kalıcılık ----------------------------------------------
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey));
+        if (!saved) return;
+        matches.forEach(m => {
+          const s = saved[m.key];
+          if (!s) return;
+          if (m.home in s) m.score[m.home] = s[m.home];
+          if (m.away in s) m.score[m.away] = s[m.away];
+        });
+      } catch (e) {}
+    }
+
+    function save() {
+      try {
+        const out = {};
+        matches.forEach(m => { out[m.key] = m.score; });
+        localStorage.setItem(CONFIG.storageKey, JSON.stringify(out));
+      } catch (e) {}
+    }
+
+    // --- Puan durumu -------------------------------------------
+    function computeStandings() {
+      const table = {};
+      CONFIG.teams.forEach(t => table[t] = { name: t, o: 0, g: 0, b: 0, m: 0, a: 0, y: 0, av: 0, p: 0 });
+
+      matches.forEach(m => {
+        const hs = m.score[m.home], as = m.score[m.away];
+        if (hs === null || as === null) return;
+        const h = table[m.home], a = table[m.away];
+        h.o++; a.o++;
+        h.a += hs; h.y += as;
+        a.a += as; a.y += hs;
+        if (hs > as)      { h.g++; a.m++; h.p += 3; }
+        else if (hs < as) { a.g++; h.m++; a.p += 3; }
+        else              { h.b++; a.b++; h.p++; a.p++; }
+      });
+
+      const rows = Object.values(table);
+      rows.forEach(r => r.av = r.a - r.y);
+      rows.sort((x, y) =>
+        y.p - x.p || y.av - x.av || y.a - x.a || x.name.localeCompare(y.name, 'tr')
+      );
+      return rows;
+    }
+
+    function renderStandings() {
+      const rows = computeStandings();
+      document.getElementById('standings').innerHTML = rows.map((r, i) => `
+        <tr class="border-t border-white/5 ${i === 0 ? 'text-white' : ''}">
+          <td class="py-2 pl-2 font-semibold">${i + 1}. ${r.name}</td>
+          <td class="text-center">${r.o}</td>
+          <td class="text-center">${r.g}</td>
+          <td class="text-center">${r.b}</td>
+          <td class="text-center">${r.m}</td>
+          <td class="text-center">${r.a}</td>
+          <td class="text-center">${r.y}</td>
+          <td class="text-center ${r.av > 0 ? 'text-emerald-400' : r.av < 0 ? 'text-rose-400' : ''}">${r.av}</td>
+          <td class="text-center font-bold text-amber-400">${r.p}</td>
+        </tr>
+      `).join('');
+    }
+
+    // --- Fikstür -------------------------------------------------
+    function scoreInput(m, team) {
+      const v = m.score[team];
+      return `<input type="number" min="0" inputmode="numeric"
+        data-key="${m.key}" data-team="${team}"
+        value="${v === null ? '' : v}"
+        class="w-11 h-9 text-center rounded-md bg-[#1a1229] border border-white/10
+               focus:border-violet-400 focus:outline-none text-white font-semibold">`;
+    }
+
+    function renderFixtures() {
+      document.getElementById('fixtures').innerHTML = CONFIG.sections.map((sec, si) => `
+        <div>
+        <h2 class="text-xs font-bold tracking-wider text-slate-400 mt-5 mb-2 pl-2">${sec.name}</h2>
+        <div class="space-y-1">
+          ${matches.filter(m => m.section === si).map(m => `
+            <div class="flex items-center justify-center gap-2 py-1.5">
+              <span class="w-24 text-right text-sm">${m.home}</span>
+              ${scoreInput(m, m.home)}
+              <span class="text-slate-500">-</span>
+              ${scoreInput(m, m.away)}
+              <span class="w-24 text-left text-sm">${m.away}</span>
+            </div>
+          `).join('')}
+        </div>
+        </div>
+      `).join('');
+    }
+
+    // --- Olaylar -------------------------------------------------
+    document.addEventListener('input', e => {
+      if (!e.target.matches('input[data-key]')) return;
+      const m = matches.find(x => x.key === e.target.dataset.key);
+      if (!m) return;
+      const v = e.target.value.trim();
+      m.score[e.target.dataset.team] = v === '' ? null : Math.max(0, parseInt(v, 10) || 0);
+      save();
+      renderStandings();
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      if (!confirm('Tüm skorlar silinsin mi?')) return;
+      matches.forEach(m => { m.score[m.home] = null; m.score[m.away] = null; });
+      save();
+      renderFixtures();
+      renderStandings();
+    });
+
+    // --- Başlat --------------------------------------------------
+    document.getElementById('title').innerHTML =
+      `${CONFIG.title} <span class="text-sm font-normal text-slate-400">(${CONFIG.teams.length} takım)</span>`;
+    buildMatches();
+    load();
+    renderFixtures();
+    renderStandings();
+  </script>
+</body>
+</html>
