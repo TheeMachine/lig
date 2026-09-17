@@ -1,5 +1,15 @@
 # Sürüm Notları
 
+## 1.1 — 2026-09-17
+
+### Takım adları
+- Abdullah → **01 Şırdan Fk**, Mert → **Icon United**, Kasım → **Macır SK**. İsmail ve Zafer aynı kaldı.
+- Sayfanın altına takım sahiplerini gösteren bir not eklendi. Sahip bilgisi `CONFIG.owners` eşlemesinden okunur; adı ile sahibi aynı olan takımlar notta gösterilmez.
+- Fikstürdeki isim sütunları uzun takım adları için genişletildi.
+
+### Notlar
+- Skorlar takım adına bağlı saklandığı için, eski adlarla girilmiş skorlar yeni adlarla eşleşmez. Sayfada bir kez "Sıfırla" yapmak eski kayıtları temizler.
+
 ## 1.0 — 2026-09-17
 
 Tek dosyalık, kurulum gerektirmeyen lig takip sayfası. Skor girildiği anda puan durumu güncellenir.

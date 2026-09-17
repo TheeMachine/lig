@@ -78,6 +78,10 @@
 
       <!-- Fikstür (bölümler JS tarafından üretilir) -->
       <div id="fixtures" class="px-3 pb-4 grid grid-cols-1 md:grid-cols-2 md:gap-x-8"></div>
+
+      <!-- Not: takım sahipleri -->
+      <div id="owners" class="px-5 pb-3 text-xs text-muted border-t border-line pt-3"></div>
+      <div id="version" class="px-5 pb-3 text-[11px] text-muted text-right opacity-70"></div>
     </div>
   </div>
 
@@ -95,37 +99,46 @@
        ========================================================= */
     const CONFIG = {
       title: 'Hep Yorgunlar',
+      version: '1.1',   // CHANGELOG.md ile birlikte güncelle
       storageKey: 'grup1-skorlar',
-      teams: ['Mert', 'Kasım', 'Abdullah', 'İsmail', 'Zafer'],
+      teams: ['Icon United', 'Macır SK', '01 Şırdan Fk', 'İsmail', 'Zafer'],
+      // Takım sahipleri (sayfanın altında not olarak gösterilir)
+      owners: {
+        'Icon United': 'Mert',
+        'Macır SK': 'Kasım',
+        '01 Şırdan Fk': 'Abdullah',
+        'İsmail': 'İsmail',
+        'Zafer': 'Zafer',
+      },
       sections: [
         {
           name: 'İLK DEVRE',
           matches: [
-            ['Zafer', 'Mert', 0, 3],
-            ['İsmail', 'Kasım', 2, 2],
-            ['Abdullah', 'Kasım', 3, 3],
-            ['Mert', 'İsmail', 4, 1],
-            ['Zafer', 'Abdullah'],
-            ['Zafer', 'Kasım'],
-            ['Kasım', 'Mert'],
-            ['İsmail', 'Abdullah'],
+            ['Zafer', 'Icon United', 0, 3],
+            ['İsmail', 'Macır SK', 2, 2],
+            ['01 Şırdan Fk', 'Macır SK', 3, 3],
+            ['Icon United', 'İsmail', 4, 1],
+            ['Zafer', '01 Şırdan Fk'],
+            ['Zafer', 'Macır SK'],
+            ['Macır SK', 'Icon United'],
+            ['İsmail', '01 Şırdan Fk'],
             ['Zafer', 'İsmail'],
-            ['Mert', 'Abdullah'],
+            ['Icon United', '01 Şırdan Fk'],
           ],
         },
         {
           name: 'İKİNCİ DEVRE',
           matches: [
             ['İsmail', 'Zafer'],
-            ['Abdullah', 'Mert'],
-            ['İsmail', 'Mert'],
-            ['Kasım', 'Zafer'],
-            ['Kasım', 'İsmail'],
-            ['Abdullah', 'Zafer'],
-            ['Abdullah', 'İsmail'],
-            ['Mert', 'Kasım'],
-            ['Kasım', 'Abdullah'],
-            ['Mert', 'Zafer'],
+            ['01 Şırdan Fk', 'Icon United'],
+            ['İsmail', 'Icon United'],
+            ['Macır SK', 'Zafer'],
+            ['Macır SK', 'İsmail'],
+            ['01 Şırdan Fk', 'Zafer'],
+            ['01 Şırdan Fk', 'İsmail'],
+            ['Icon United', 'Macır SK'],
+            ['Macır SK', '01 Şırdan Fk'],
+            ['Icon United', 'Zafer'],
           ],
         },
       ],
@@ -238,11 +251,11 @@
         <div class="space-y-1">
           ${matches.filter(m => m.section === si).map(m => `
             <div class="flex items-center justify-center gap-2 py-1.5">
-              <span class="w-24 text-right text-sm">${m.home}</span>
+              <span class="w-28 text-right text-sm truncate">${m.home}</span>
               ${scoreInput(m, m.home)}
               <span class="text-muted">-</span>
               ${scoreInput(m, m.away)}
-              <span class="w-24 text-left text-sm">${m.away}</span>
+              <span class="w-28 text-left text-sm truncate">${m.away}</span>
             </div>
           `).join('')}
         </div>
@@ -271,6 +284,17 @@
       renderFixtures();
       renderStandings();
     });
+
+    // --- Not: takım sahipleri -----------------------------------
+    function renderOwners() {
+      const o = CONFIG.owners || {};
+      const items = CONFIG.teams
+        .filter(t => o[t] && o[t] !== t)
+        .map(t => `<span class="whitespace-nowrap"><b style="color:var(--text)">${t}</b>: ${o[t]}</span>`);
+      document.getElementById('owners').innerHTML = items.length
+        ? `<span class="font-semibold">Not:</span> ${items.join(' &nbsp;·&nbsp; ')}`
+        : '';
+    }
 
     // --- Tema ----------------------------------------------------
     const THEMES = [
@@ -306,6 +330,8 @@
     load();
     renderFixtures();
     renderStandings();
+    renderOwners();
+    document.getElementById('version').textContent = `v${CONFIG.version}`;
   </script>
 </body>
 </html>
