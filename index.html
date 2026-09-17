@@ -6,27 +6,61 @@
   <title>Grup 1 Lig</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #1a1229; }
+    /* ---- Temalar (yeni tema eklemek için bir blok kopyala, JS'teki THEMES listesine ekle) ---- */
+    :root, [data-theme="mor"] {
+      --bg: #1a1229; --card: #2a1f3f; --head: #3a2d54; --input: #1a1229;
+      --text: #e2e8f0; --muted: #94a3b8; --accent: #fbbf24; --focus: #a78bfa; --line: rgba(255,255,255,.06);
+    }
+    [data-theme="gece"] {
+      --bg: #0b1220; --card: #111a2e; --head: #17233d; --input: #0b1220;
+      --text: #e2e8f0; --muted: #8b9bb4; --accent: #38bdf8; --focus: #38bdf8; --line: rgba(255,255,255,.06);
+    }
+    [data-theme="orman"] {
+      --bg: #0f1f17; --card: #16301f; --head: #1e4029; --input: #0f1f17;
+      --text: #e6f2ea; --muted: #8fb59d; --accent: #fde047; --focus: #4ade80; --line: rgba(255,255,255,.06);
+    }
+    [data-theme="kizil"] {
+      --bg: #1c0f12; --card: #2b161b; --head: #3d1d25; --input: #1c0f12;
+      --text: #f5e6e8; --muted: #b48a92; --accent: #fb923c; --focus: #f87171; --line: rgba(255,255,255,.06);
+    }
+    [data-theme="acik"] {
+      --bg: #f1f5f9; --card: #ffffff; --head: #e2e8f0; --input: #f8fafc;
+      --text: #0f172a; --muted: #64748b; --accent: #d97706; --focus: #6366f1; --line: rgba(0,0,0,.08);
+    }
+
+    body { background: var(--bg); color: var(--text); }
+    .bg-card { background: var(--card); }
+    .bg-head { background: var(--head); }
+    .bg-input { background: var(--input); }
+    .text-muted { color: var(--muted); }
+    .text-accent { color: var(--accent); }
+    .border-line { border-color: var(--line); }
+    input[data-key]:focus { border-color: var(--focus); }
+    select { color-scheme: dark; }
+    [data-theme="acik"] select { color-scheme: light; }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
   </style>
 </head>
-<body class="min-h-screen text-slate-200 font-sans">
+<body class="min-h-screen font-sans">
   <div class="max-w-md md:max-w-3xl mx-auto py-6 px-4">
-    <div class="rounded-xl overflow-hidden shadow-2xl" style="background:#2a1f3f">
+    <div class="rounded-xl overflow-hidden shadow-2xl bg-card">
 
       <!-- Başlık -->
-      <div class="flex items-center justify-between px-4 py-3" style="background:#3a2d54">
-        <h1 class="text-lg font-bold text-white" id="title"></h1>
-        <button id="reset" class="text-xs text-slate-400 hover:text-white transition">Sıfırla</button>
+      <div class="flex items-center justify-between gap-3 px-4 py-3 bg-head">
+        <h1 class="text-lg font-bold" id="title"></h1>
+        <div class="flex items-center gap-3">
+          <select id="theme" class="text-xs rounded-md px-2 py-1 bg-input border border-line focus:outline-none" style="color:var(--text)"></select>
+          <button id="reset" class="text-xs text-muted hover:opacity-70 transition">Sıfırla</button>
+        </div>
       </div>
 
       <!-- Puan Durumu -->
       <div class="px-3 pt-3 md:max-w-md md:mx-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="text-slate-400 text-xs">
+            <tr class="text-muted text-xs">
               <th class="text-left py-2 pl-2 font-semibold">Takım</th>
               <th class="w-8 text-center font-semibold">O</th>
               <th class="w-8 text-center font-semibold">G</th>
@@ -173,7 +207,7 @@
     function renderStandings() {
       const rows = computeStandings();
       document.getElementById('standings').innerHTML = rows.map((r, i) => `
-        <tr class="border-t border-white/5 ${i === 0 ? 'text-white' : ''}">
+        <tr class="border-t border-line ${i === 0 ? 'font-bold' : ''}">
           <td class="py-2 pl-2 font-semibold">${i + 1}. ${r.name}</td>
           <td class="text-center">${r.o}</td>
           <td class="text-center">${r.g}</td>
@@ -182,7 +216,7 @@
           <td class="text-center">${r.a}</td>
           <td class="text-center">${r.y}</td>
           <td class="text-center ${r.av > 0 ? 'text-emerald-400' : r.av < 0 ? 'text-rose-400' : ''}">${r.av}</td>
-          <td class="text-center font-bold text-amber-400">${r.p}</td>
+          <td class="text-center font-bold text-accent">${r.p}</td>
         </tr>
       `).join('');
     }
@@ -193,20 +227,20 @@
       return `<input type="number" min="0" inputmode="numeric"
         data-key="${m.key}" data-team="${team}"
         value="${v === null ? '' : v}"
-        class="w-11 h-9 text-center rounded-md bg-[#1a1229] border border-white/10
-               focus:border-violet-400 focus:outline-none text-white font-semibold">`;
+        class="w-11 h-9 text-center rounded-md bg-input border border-line
+               focus:outline-none font-semibold" style="color:var(--text)">`;
     }
 
     function renderFixtures() {
       document.getElementById('fixtures').innerHTML = CONFIG.sections.map((sec, si) => `
         <div>
-        <h2 class="text-xs font-bold tracking-wider text-slate-400 mt-5 mb-2 pl-2">${sec.name}</h2>
+        <h2 class="text-xs font-bold tracking-wider text-muted mt-5 mb-2 pl-2">${sec.name}</h2>
         <div class="space-y-1">
           ${matches.filter(m => m.section === si).map(m => `
             <div class="flex items-center justify-center gap-2 py-1.5">
               <span class="w-24 text-right text-sm">${m.home}</span>
               ${scoreInput(m, m.home)}
-              <span class="text-slate-500">-</span>
+              <span class="text-muted">-</span>
               ${scoreInput(m, m.away)}
               <span class="w-24 text-left text-sm">${m.away}</span>
             </div>
@@ -227,17 +261,47 @@
       renderStandings();
     });
 
+    // Sıfırla: kayıtlı skorları siler, koddaki (CONFIG) başlangıç skorlarına döner.
+    // Sayfa yenilendiğinde de aynı başlangıç durumu gelir.
     document.getElementById('reset').addEventListener('click', () => {
-      if (!confirm('Tüm skorlar silinsin mi?')) return;
-      matches.forEach(m => { m.score[m.home] = null; m.score[m.away] = null; });
-      save();
+      if (!confirm('Girilen skorlar silinip başlangıç durumuna dönülsün mü?')) return;
+      try { localStorage.removeItem(CONFIG.storageKey); } catch (e) {}
+      matches.length = 0;
+      buildMatches();
       renderFixtures();
       renderStandings();
     });
 
+    // --- Tema ----------------------------------------------------
+    const THEMES = [
+      { id: 'mor',   name: 'Mor' },
+      { id: 'gece',  name: 'Gece' },
+      { id: 'orman', name: 'Orman' },
+      { id: 'kizil', name: 'Kızıl' },
+      { id: 'acik',  name: 'Açık' },
+    ];
+    const THEME_KEY = CONFIG.storageKey + '-tema';
+
+    function applyTheme(id) {
+      if (!THEMES.some(t => t.id === id)) id = THEMES[0].id;
+      document.documentElement.dataset.theme = id;
+      document.getElementById('theme').value = id;
+      try { localStorage.setItem(THEME_KEY, id); } catch (e) {}
+    }
+
+    function initTheme() {
+      const sel = document.getElementById('theme');
+      sel.innerHTML = THEMES.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+      sel.addEventListener('change', () => applyTheme(sel.value));
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+      applyTheme(saved || THEMES[0].id);
+    }
+
     // --- Başlat --------------------------------------------------
+    initTheme();
     document.getElementById('title').innerHTML =
-      `${CONFIG.title} <span class="text-sm font-normal text-slate-400">(${CONFIG.teams.length} takım)</span>`;
+      `${CONFIG.title} <span class="text-sm font-normal text-muted">(${CONFIG.teams.length} takım)</span>`;
     buildMatches();
     load();
     renderFixtures();
