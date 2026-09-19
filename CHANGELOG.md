@@ -1,5 +1,10 @@
 # Sürüm Notları
 
+## 1.3 — 2026-09-19
+
+- Puanı eşit takımlar artık önce aralarındaki maçlara göre sıralanır: ikili puan, ikili averaj, ikili atılan gol. Bunlar da eşitse genel averaj, atılan gol ve isim sırası kullanılır.
+- Üç veya daha fazla takım eşitse aralarındaki tüm maçlar birlikte değerlendirilir.
+
 ## 1.2 — 2026-09-17
 
 - Sayfanın altına sürüm numarası eklendi. Değer `CONFIG.version` alanından okunur.
